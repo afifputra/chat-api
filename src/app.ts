@@ -11,6 +11,11 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(cors());
 
+// Routes
+app.use("/");
+app.use("/users");
+app.use("/room");
+
 app.use("*", (_, res) => {
   return res.status(404).json({ message: "Not Found" });
 });
