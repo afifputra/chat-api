@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { v4 as uuidv4 } from "uuid";
 
 export enum USER_TYPES {
   CONSUMER = "consumer",
@@ -8,10 +7,6 @@ export enum USER_TYPES {
 
 const userSchema = new mongoose.Schema(
   {
-    _id: {
-      type: String,
-      default: () => uuidv4().replace(/\-/g, ""),
-    },
     firstName: {
       type: String,
       required: true,
