@@ -16,13 +16,6 @@ const onCreateUser: RequestHandler = async (req, res) => {
   }
 
   const { firstName, lastName, email, password, type } = req.body;
-
-  const existingEmail = await User.findOne({ email });
-
-  if (existingEmail) {
-    return res.status(422).json({ message: "Email already exists" });
-  }
-
   const encryptedPassword = await bcrypt.hash(password, 12);
 
   const user = new User({
