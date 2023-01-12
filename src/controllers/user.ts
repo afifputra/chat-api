@@ -4,9 +4,31 @@ import bcrypt from "bcryptjs";
 
 import User from "../models/user";
 
-const onGetAllUsers: RequestHandler = (_, __) => {};
+const onGetAllUsers: RequestHandler = async (_, res) => {
+  try {
+    const users = await User.find();
 
-const onGetUserById: RequestHandler = (_, __) => {};
+    return res.status(200).json(users);
+  } catch (err) {
+    return res.status(500).json({ message: "Fetching users failed" });
+  }
+};
+
+const onGetUserById: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json(user);
+  } catch (err) {
+    return res.status(500).json({ message: "Fetching user failed" });
+  }
+};
 
 const onCreateUser: RequestHandler = async (req, res) => {
   const errors = validationResult(req);
@@ -35,6 +57,6 @@ const onCreateUser: RequestHandler = async (req, res) => {
   }
 };
 
-const onDeleteUser: RequestHandler = (_, __) => {};
+const onDeleteUser: RequestHandler = async (_, __) => {};
 
 export default { onGetAllUsers, onGetUserById, onCreateUser, onDeleteUser };

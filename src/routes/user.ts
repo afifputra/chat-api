@@ -13,7 +13,7 @@ const creatUserValidators = [
     .isEmail()
     .normalizeEmail()
     .custom(async (value) => {
-      const existingEmail = await User.findOne({ value });
+      const existingEmail = await User.findOne({ email: value });
       if (existingEmail) {
         return Promise.reject("Email already exists");
       }
@@ -22,9 +22,9 @@ const creatUserValidators = [
   body("type").isIn(Object.values(USER_TYPES)),
 ];
 
-router.get("/"); // Get All Users
+router.get("/", userController.onGetAllUsers); // Get All Users
 
-router.get("/:id"); // Get User By Id
+router.get("/:id", userController.onGetUserById); // Get User By Id
 
 router.post("/", creatUserValidators, userController.onCreateUser); // Create User
 
