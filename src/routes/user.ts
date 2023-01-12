@@ -28,6 +28,6 @@ router.get("/:id", userController.onGetUserById); // Get User By Id
 
 router.post("/", creatUserValidators, userController.onCreateUser); // Create User
 
-router.delete("/:id"); // Delete User
+router.delete("/:id", userController.onDeleteUser); // Delete User
 
 export default router;

@@ -57,6 +57,22 @@ const onCreateUser: RequestHandler = async (req, res) => {
   }
 };
 
-const onDeleteUser: RequestHandler = async (_, __) => {};
+const onDeleteUser: RequestHandler = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.deleteOne({ _id: id });
+
+    return res.status(200).json({ message: "User deleted" });
+  } catch (err) {
+    return res.status(500).json({ message: "Deleting user failed" });
+  }
+};
 
 export default { onGetAllUsers, onGetUserById, onCreateUser, onDeleteUser };
