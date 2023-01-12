@@ -3,6 +3,13 @@ import express from "express";
 import cors from "cors";
 import logger from "morgan";
 
+import "./config/mongo";
+
+import indexRouter from "./routes/index";
+import userRouter from "./routes/user";
+import chatRoomRouter from "./routes/chatRoom";
+import deleteRouter from "./routes/delete";
+
 const app = express();
 
 app.use(logger("dev"));
@@ -12,9 +19,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
 // Routes
-app.use("/");
-app.use("/users");
-app.use("/room");
+app.use("/", indexRouter);
+app.use("/users", userRouter);
+app.use("/room", chatRoomRouter);
+app.use("/delete", deleteRouter);
 
 app.use("*", (_, res) => {
   return res.status(404).json({ message: "Not Found" });
