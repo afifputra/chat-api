@@ -1,8 +1,10 @@
 import { RequestHandler } from "express";
 import { validationResult } from "express-validator";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 import User from "../models/user";
+import { SECRET_KEY } from "../middlewares/jwt";
 
 const onGetAllUsers: RequestHandler = async (_, res) => {
   try {
@@ -75,4 +77,42 @@ const onDeleteUser: RequestHandler = async (req, res) => {
   }
 };
 
-export default { onGetAllUsers, onGetUserById, onCreateUser, onDeleteUser };
+const onLogin: RequestHandler = async (req, res) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+
+  const { email, password } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+        type: user.type,
+      },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    return res.status(200).json({ token });
+  } catch (err) {
+    return res.status(500).json({ message: "Encoding user failed" });
+  }
+};
+
+export default { onGetAllUsers, onGetUserById, onCreateUser, onDeleteUser, onLogin };

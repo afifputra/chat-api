@@ -10,6 +10,8 @@ import userRouter from "./routes/user";
 import chatRoomRouter from "./routes/chatRoom";
 import deleteRouter from "./routes/delete";
 
+import { decode } from "./middlewares/jwt";
+
 const app = express();
 
 app.use(logger("dev"));
@@ -21,7 +23,7 @@ app.use(cors());
 // Routes
 app.use("/", indexRouter);
 app.use("/users", userRouter);
-app.use("/room", chatRoomRouter);
+app.use("/room", decode, chatRoomRouter);
 app.use("/delete", deleteRouter);
 
 app.use("*", (_, res) => {
