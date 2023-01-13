@@ -16,6 +16,12 @@ import { decode } from "./middlewares/jwt";
 
 declare global {
   var io: socketio.Server;
+  namespace Express {
+    interface Request {
+      userId?: string;
+      userType?: string;
+    }
+  }
 }
 
 const app = express();

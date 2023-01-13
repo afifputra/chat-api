@@ -29,40 +29,4 @@ const chatRoomSchema = new mongoose.Schema(
   }
 );
 
-chatRoomSchema.statics.initiateChat = async function (userIds: string[], type: CHAT_ROOM_TYPES, chatInitiator: string) {
-  try {
-    const availableRoom = await this.findOne({
-      userIds: {
-        $size: userIds.length,
-        $all: [...userIds],
-      },
-      type,
-    });
-
-    if (availableRoom) {
-      return {
-        isNew: false,
-        message: "retreiving an old chat room",
-        chatRoomId: availableRoom._id,
-        type: availableRoom.type,
-      };
-    }
-
-    const newChatRoom = await this.create({
-      userIds,
-      type,
-      chatInitiator,
-    });
-
-    return {
-      isNew: true,
-      message: "creating a new chat room",
-      chatRoomId: newChatRoom._id,
-      type: newChatRoom.type,
-    };
-  } catch (error) {
-    throw error;
-  }
-};
-
 export default mongoose.model("ChatRoom", chatRoomSchema);

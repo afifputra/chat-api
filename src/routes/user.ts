@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { body } from "express-validator";
 
-import userController from "../controllers/user";
+import UserController from "../controllers/user";
 import User, { USER_TYPES } from "../models/user";
 
 const router = Router();
@@ -22,12 +22,12 @@ const creatUserValidators = [
   body("type").isIn(Object.values(USER_TYPES)),
 ];
 
-router.get("/", userController.onGetAllUsers); // Get All Users
+router.get("/", UserController.onGetAllUsers); // Get All Users
 
-router.get("/:id", userController.onGetUserById); // Get User By Id
+router.get("/:id", UserController.onGetUserById); // Get User By Id
 
-router.post("/", creatUserValidators, userController.onCreateUser); // Create User
+router.post("/", creatUserValidators, UserController.onCreateUser); // Create User
 
-router.delete("/:id", userController.onDeleteUser); // Delete User
+router.delete("/:id", UserController.onDeleteUser); // Delete User
 
 export default router;

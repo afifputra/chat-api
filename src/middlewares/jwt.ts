@@ -1,6 +1,8 @@
 import { RequestHandler } from "express";
 import jwt from "jsonwebtoken";
 
+import { USER_TYPES } from "../models/user";
+
 const SECRET_KEY = "rimurutempest";
 
 const decode: RequestHandler = (req, res, next) => {
@@ -13,9 +15,10 @@ const decode: RequestHandler = (req, res, next) => {
   const token = authorization.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, SECRET_KEY);
+    const decoded = jwt.verify(token, SECRET_KEY) as { id: string; type: USER_TYPES };
 
-    req.body = decoded;
+    req.userId = decoded.id;
+    req.userType = decoded.type;
 
     next();
   } catch (err) {

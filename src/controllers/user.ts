@@ -102,7 +102,6 @@ const onLogin: RequestHandler = async (req, res) => {
     const token = jwt.sign(
       {
         id: user._id,
-        email: user.email,
         type: user.type,
       },
       SECRET_KEY,
