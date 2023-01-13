@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import { validationResult } from "express-validator";
 
+import User from "../models/user";
 import ChatRoom from "../models/ChatRoom";
 import ChatMessage, { CHAT_MESSAGE_TYPES } from "../models/ChatMessage";
 
@@ -75,7 +76,7 @@ const postMessage: RequestHandler = async (req, res) => {
       postedByUser: currentLoggedUserId,
     });
 
-    const aggregate = await ChatMessage.aggregate([
+    const postData = await ChatMessage.aggregate([
       // get post where _id is equal to the post._id
       { $match: { _id: post._id } },
       // do join on another collection called users, and
@@ -144,7 +145,9 @@ const postMessage: RequestHandler = async (req, res) => {
       },
     ]);
 
-    return res.status(200).json(aggregate[0]);
+    global.io.in(roomId).emit("new message", { message: postData[0] });
+
+    return res.status(200).json(postData);
   } catch (error) {
     return res.status(500).json({ error });
   }
@@ -152,7 +155,33 @@ const postMessage: RequestHandler = async (req, res) => {
 
 const getRecentConversation: RequestHandler = (_, __) => {};
 
-const getConversationRoom: RequestHandler = (_, __) => {};
+const getConversationRoom: RequestHandler = async (req, res) => {
+  const { roomId } = req.params;
+
+  try {
+    const isRoomAvailable = await ChatRoom.findOne({ _id: roomId });
+
+    if (!isRoomAvailable) {
+      return res.status(404).json({ message: "Chat room not found" });
+    }
+
+    const users = await User.find({ _id: { $in: isRoomAvailable.userIds } }).select("firstName lastName type");
+    const options = {
+      page: req.query.page ? +req.query.page : 0,
+      limit: req.query.limit ? +req.query.limit : 10,
+    };
+
+    const conversation = await ChatMessage.find({ chatRoom: roomId })
+      .populate("postedByUser", "firstName lastName type")
+      .sort({ createdAt: -1 })
+      .skip(options.page * options.limit)
+      .limit(options.limit);
+
+    return res.status(200).json({ users, conversation });
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
 
 const markConversationReadByRoomId: RequestHandler = (_, __) => {};
 

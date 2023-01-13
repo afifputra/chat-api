@@ -105,7 +105,7 @@ const onLogin: RequestHandler = async (req, res) => {
         type: user.type,
       },
       SECRET_KEY,
-      { expiresIn: "1h" }
+      { expiresIn: "12h" }
     );
 
     return res.status(200).json({ token });

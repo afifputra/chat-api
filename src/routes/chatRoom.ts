@@ -20,7 +20,7 @@ const router = Router();
 
 router.get("/"); // Get Recent Chats
 
-router.get("/:roomId"); // Get Conversation By Room Id
+router.get("/:roomId", ChatRoomController.getConversationRoom); // Get Conversation By Room Id
 
 router.post("/initiate", initiateChatValidators, ChatRoomController.initiate); // Initiate Chat
 
