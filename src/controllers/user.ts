@@ -108,7 +108,11 @@ const onLogin: RequestHandler = async (req, res) => {
       { expiresIn: "12h" }
     );
 
-    return res.status(200).json({ token });
+    return res.status(200).json({
+      token,
+      expiresIn: 12 * 60 * 60 * 1000,
+      userId: user._id,
+    });
   } catch (err) {
     return res.status(500).json({ message: "Encoding user failed" });
   }

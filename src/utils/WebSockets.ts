@@ -6,9 +6,13 @@ interface User {
 }
 
 class WebSockets {
-  private users: User[] = [];
+  users: User[] = [];
 
-  connection(client: Socket) {
+  constructor() {
+    this.users = [];
+  }
+
+  connection = (client: Socket) => {
     // event fired when the chat room is disconnected
     client.on("disconnect", () => {
       this.users = this.users.filter((user) => user.socketId !== client.id);
@@ -23,7 +27,7 @@ class WebSockets {
 
     // subscribe person to chat & other users as well
     client.on("subscribe", (room: string, otherUserId: string) => {
-      console.log("joining room", room);
+      console.log(room);
       this.subcribeOtherUser(room, otherUserId);
       client.join(room);
     });
@@ -33,14 +37,14 @@ class WebSockets {
       console.log("leaving room", room);
       client.leave(room);
     });
-  }
+  };
 
   subcribeOtherUser = (room: string, otherUserId: string) => {
     const userSockets = this.users.filter((user) => user.userId === otherUserId);
-
+    console.log("userSockets", userSockets);
     userSockets.map((userInfo) => {
       // get socket id
-      const socketConn = global.io.sockets.sockets.get(userInfo.socketId);
+      const socketConn = global.io.sockets.connected(userInfo.socketId);
       if (socketConn) {
         socketConn.join(room);
       }

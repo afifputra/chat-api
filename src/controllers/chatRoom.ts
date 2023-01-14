@@ -68,7 +68,6 @@ const postMessage: RequestHandler = async (req, res) => {
     if (!chatRoom) {
       return res.status(404).json({ message: "Chat room not found" });
     }
-
     const post = await ChatMessage.create({
       chatRoomId: roomId,
       message,
@@ -145,9 +144,9 @@ const postMessage: RequestHandler = async (req, res) => {
       },
     ]);
 
-    global.io.in(roomId).emit("new message", { message: postData[0] });
+    global.io.to(roomId).emit("newMessage", postData[0]);
 
-    return res.status(200).json(postData);
+    return res.status(200).json(postData[0]);
   } catch (error) {
     return res.status(500).json({ error });
   }
