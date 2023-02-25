@@ -146,7 +146,10 @@ const postMessage: RequestHandler = async (req, res) => {
 
     global.io.to(roomId).emit("newMessage", postData[0]);
 
-    return res.status(200).json(postData[0]);
+    return res.status(200).json({
+      message: "Message posted successfully",
+    });
+    // return res.status(200).json(postData[0]);
   } catch (error) {
     return res.status(500).json({ error });
   }

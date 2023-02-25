@@ -8,7 +8,8 @@ import { SECRET_KEY } from "../middlewares/jwt";
 
 const onGetAllUsers: RequestHandler = async (_, res) => {
   try {
-    const users = await User.find();
+    // find users without password, createdAt and updatedAt
+    const users = await User.find().select("-password -createdAt -updatedAt");
 
     return res.status(200).json(users);
   } catch (err) {
