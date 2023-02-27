@@ -27,15 +27,15 @@ class WebSockets {
 
     // subscribe person to chat & other users as well
     client.on("subscribe", (room: string, otherUserId: string) => {
-      console.log(room);
       this.subcribeOtherUser(room, otherUserId);
       client.join(room);
+      console.log("joining room", room);
     });
 
     // mute a chat room
     client.on("unsubscribe", (room: string) => {
-      console.log("leaving room", room);
       client.leave(room);
+      console.log("leaving room", room);
     });
   };
 

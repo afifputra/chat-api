@@ -52,6 +52,7 @@ const initiate: RequestHandler = async (req, res) => {
 
 const postMessage: RequestHandler = async (req, res) => {
   const { roomId } = req.params;
+  console.log("roomId", roomId);
 
   const errors = validationResult(req);
 
