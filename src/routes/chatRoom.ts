@@ -18,7 +18,7 @@ const postMessageValidators = [body("message").isString().isLength({ min: 1 })];
 
 const router = Router();
 
-router.get("/"); // Get Recent Chats
+router.get("/", ChatRoomController.getRecentConversation); // Get Recent Chats
 
 router.get("/:roomId", ChatRoomController.getConversationRoom); // Get Conversation By Room Id
 

@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { validationResult } from "express-validator";
+import mongoose from "mongoose";
 
 import User from "../models/user";
 import ChatRoom from "../models/ChatRoom";
@@ -156,7 +157,74 @@ const postMessage: RequestHandler = async (req, res) => {
   }
 };
 
-const getRecentConversation: RequestHandler = (_, __) => {};
+const getRecentConversation: RequestHandler = async (req, res) => {
+  console.log("getRecentConversation", req.userId);
+  const { userId } = req;
+
+  try {
+    const recentConversationWithLastMessage = await ChatRoom.aggregate([
+      // get post where _id is equal to the post._id
+      { $match: { userIds: { $in: [new mongoose.Types.ObjectId(userId)] } } },
+      // do join on another collection called users, and
+      // get the user where _id is equal to the postedByUser
+      {
+        $lookup: {
+          from: "chatmessages",
+          localField: "_id",
+          foreignField: "chatRoomId",
+          as: "chatMessages",
+        },
+      },
+      { $unwind: "$chatMessages" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "chatMessages.postedByUser",
+          foreignField: "_id",
+          as: "chatMessages.postedByUser",
+        },
+      },
+      { $unwind: "$chatMessages.postedByUser" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "userIds",
+          foreignField: "_id",
+          as: "userIds",
+        },
+      },
+      { $unwind: "$userIds" },
+      {
+        $group: {
+          _id: "$_id",
+          chatMessages: { $last: "$chatMessages" },
+          userIds: {
+            $addToSet: {
+              _id: "$userIds._id",
+              firstName: "$userIds.firstName",
+              lastName: "$userIds.lastName",
+              type: "$userIds.type",
+            },
+          },
+          createdAt: { $last: "$createdAt" },
+        },
+      },
+    ]);
+
+    // const recentConversationWithLastMessage = recentConversation.map((conversation) => {
+    //   const lastMessage = conversation.chatMessages[0];
+    //   const chatRoomId = conversation._id;
+    //   const createdAt = formatInTimeZone(new Date(conversation.createdAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
+    //   lastMessage.createdAt = formatInTimeZone(new Date(lastMessage.createdAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
+    //   lastMessage.updatedAt = formatInTimeZone(new Date(lastMessage.updatedAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
+    //   return { lastMessage, id: chatRoomId, createdAt };
+    // })
+
+    return res.status(200).json(recentConversationWithLastMessage);
+  } catch (error) {
+    return res.status(500).json({ error });
+  }
+};
 
 const getConversationRoom: RequestHandler = async (req, res) => {
   const { roomId } = req.params;
@@ -182,6 +250,7 @@ const getConversationRoom: RequestHandler = async (req, res) => {
 
     return res.status(200).json({ users, conversation });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error });
   }
 };
