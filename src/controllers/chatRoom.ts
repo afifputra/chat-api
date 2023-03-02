@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { validationResult } from "express-validator";
+import { formatInTimeZone } from "date-fns-tz";
 import mongoose from "mongoose";
 
 import User from "../models/user";
@@ -162,7 +163,7 @@ const getRecentConversation: RequestHandler = async (req, res) => {
   const { userId } = req;
 
   try {
-    const recentConversationWithLastMessage = await ChatRoom.aggregate([
+    const recentConversation = await ChatRoom.aggregate([
       // get post where _id is equal to the post._id
       { $match: { userIds: { $in: [new mongoose.Types.ObjectId(userId)] } } },
       // do join on another collection called users, and
@@ -197,7 +198,20 @@ const getRecentConversation: RequestHandler = async (req, res) => {
       {
         $group: {
           _id: "$_id",
-          chatMessages: { $last: "$chatMessages" },
+          chatMessages: {
+            $addToSet: {
+              _id: "$chatMessages._id",
+              message: "$chatMessages.message",
+              type: "$chatMessages.type",
+              postedByUser: {
+                _id: "$chatMessages.postedByUser._id",
+                firstName: "$chatMessages.postedByUser.firstName",
+                lastName: "$chatMessages.postedByUser.lastName",
+              },
+              createdAt: "$chatMessages.createdAt",
+              updatedAt: "$chatMessages.updatedAt",
+            },
+          },
           userIds: {
             $addToSet: {
               _id: "$userIds._id",
@@ -211,14 +225,14 @@ const getRecentConversation: RequestHandler = async (req, res) => {
       },
     ]);
 
-    // const recentConversationWithLastMessage = recentConversation.map((conversation) => {
-    //   const lastMessage = conversation.chatMessages[0];
-    //   const chatRoomId = conversation._id;
-    //   const createdAt = formatInTimeZone(new Date(conversation.createdAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
-    //   lastMessage.createdAt = formatInTimeZone(new Date(lastMessage.createdAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
-    //   lastMessage.updatedAt = formatInTimeZone(new Date(lastMessage.updatedAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
-    //   return { lastMessage, id: chatRoomId, createdAt };
-    // })
+    const recentConversationWithLastMessage = recentConversation.map((conversation) => {
+      const lastMessage = conversation.chatMessages[0];
+      const chatRoomId = conversation._id;
+      const createdAt = formatInTimeZone(new Date(conversation.createdAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
+      lastMessage.createdAt = formatInTimeZone(new Date(lastMessage.createdAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
+      lastMessage.updatedAt = formatInTimeZone(new Date(lastMessage.updatedAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
+      return { lastMessage, id: chatRoomId, createdAt, userIds: conversation.userIds };
+    });
 
     return res.status(200).json(recentConversationWithLastMessage);
   } catch (error) {
