@@ -222,6 +222,7 @@ const getRecentConversation: RequestHandler = async (req, res) => {
           },
           createdAt: { $last: "$createdAt" },
         },
+        $sort: { createdAt: -1 },
       },
     ]);
 
