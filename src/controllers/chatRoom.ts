@@ -159,7 +159,6 @@ const postMessage: RequestHandler = async (req, res) => {
 };
 
 const getRecentConversation: RequestHandler = async (req, res) => {
-  console.log("getRecentConversation", req.userId);
   const { userId } = req;
 
   try {
@@ -222,21 +221,27 @@ const getRecentConversation: RequestHandler = async (req, res) => {
           },
           createdAt: { $last: "$createdAt" },
         },
-        $sort: { createdAt: -1 },
       },
     ]);
 
     const recentConversationWithLastMessage = recentConversation.map((conversation) => {
-      const lastMessage = conversation.chatMessages[0];
-      const chatRoomId = conversation._id;
-      const createdAt = formatInTimeZone(new Date(conversation.createdAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
+      const sortedMessage = conversation.chatMessages.sort((a: any, b: any) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+
+      const lastMessage = sortedMessage[0];
       lastMessage.createdAt = formatInTimeZone(new Date(lastMessage.createdAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
       lastMessage.updatedAt = formatInTimeZone(new Date(lastMessage.updatedAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
+
+      const chatRoomId = conversation._id;
+      const createdAt = formatInTimeZone(new Date(conversation.createdAt), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss'");
+
       return { lastMessage, id: chatRoomId, createdAt, userIds: conversation.userIds };
     });
 
     return res.status(200).json(recentConversationWithLastMessage);
   } catch (error) {
+    console.log("error", error);
     return res.status(500).json({ error });
   }
 };
