@@ -13,24 +13,29 @@ class WebSockets {
   }
 
   connection = (client: Socket) => {
-    console.log("Client connected");
+    console.log(this.users);
+    console.log("Client connected: ", client.id);
     // event fired when the chat room is disconnected
     client.on("disconnect", () => {
       this.users = this.users.filter((user) => user.socketId !== client.id);
-      console.log("Client disconnected");
+      console.log("Client disconnected: ", client.id);
     });
 
     // add identity of user mapped to socket id
     client.on("identity", (userId: string) => {
       console.log(`Client Identity: ${userId}`);
+      // if this user already exists in the users array, remove them
+      this.users = this.users.filter((user) => user.userId !== userId);
+      // add this user to the users array
       this.users.push({ userId, socketId: client.id });
+      console.log("identity", this.users);
     });
 
     // subscribe person to chat & other users as well
     client.on("subscribe", (room: string, otherUserId: string) => {
       this.subcribeOtherUser(room, otherUserId);
       client.join(room);
-      console.log("joining room", room);
+      console.log(`Client with id: ${client.id} & ${otherUserId} joined room: ${room}`);
     });
 
     // mute a chat room
